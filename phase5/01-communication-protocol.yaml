@@ -1,0 +1,568 @@
+# ============================================================================
+# Phase 5: Agent Communication Protocol Design
+# Version: 1.0
+# Date: 2026-07-18
+# ============================================================================
+
+version: "1.0"
+last_updated: "2026-07-18"
+
+# ============================================================================
+# 1. Communication Architecture
+# ============================================================================
+
+layers:
+  - name: "Agent-to-Agent"
+    protocol: "REST API (HTTP/1.1)"
+    port_range: "3001-3006"
+
+  - name: "Agent-to-Line"
+    protocol: "LINE Webhook API"
+    port: 3021
+
+  - name: "Agent-to-Database"
+    protocol: "psycopg2 (Python)"
+    port: 5432
+
+  - name: "Event Bus"
+    protocol: "Message Queue (Redis)"
+    port: 6379
+
+# ============================================================================
+# 2. Agent Roles and Ports
+# ============================================================================
+
+agents:
+  - role_id: "ceo"
+    name: "Chief Executive Officer"
+    title: "總幹事"
+    port: 3001
+    priority: 100
+    capabilities:
+      - "Decision"
+      - "Coordination"
+      - "Authorization"
+      - "Conflict Resolution"
+    endpoint: "http://localhost:3001"
+    webhook: "http://localhost:3021/agent/ceo"
+
+  - role_id: "property"
+    name: "Property Manager"
+    title: "物業管理"
+    port: 3002
+    priority: 90
+    capabilities:
+      - "Facility Management"
+      - "Fee Collection"
+      - "Work Orders"
+      - "Cleaning Management"
+    endpoint: "http://localhost:3002"
+    webhook: "http://localhost:3021/agent/property"
+
+  - role_id: "security"
+    name: "Security Manager"
+    title: "保全管理"
+    port: 3003
+    priority: 85
+    capabilities:
+      - "Patrol Management"
+      - "Visitor Management"
+      - "Security Events"
+      - "CCTV"
+    endpoint: "http://localhost:3003"
+    webhook: "http://localhost:3021/agent/security"
+
+  - role_id: "fire"
+    name: "Fire Safety Manager"
+    title: "消防管理"
+    port: 3004
+    priority: 80
+    capabilities:
+      - "Fire Equipment"
+      - "Emergency Notification"
+      - "Drill Management"
+      - "Fire Events"
+    endpoint: "http://localhost:3004"
+    webhook: "http://localhost:3021/agent/fire"
+
+  - role_id: "energy"
+    name: "Energy Manager"
+    title: "節能管理"
+    port: 3005
+    priority: 75
+    capabilities:
+      - "Energy Monitoring"
+      - "Device Management"
+      - "Energy Saving Policies"
+      - "Energy Analysis"
+    endpoint: "http://localhost:3005"
+    webhook: "http://localhost:3021/agent/energy"
+
+  - role_id: "notice"
+    name: "Notice Center"
+    title: "通知中心"
+    port: 3006
+    priority: 70
+    capabilities:
+      - "Announcement Publishing"
+      - "Message Push"
+      - "Notice Management"
+      - "Template Management"
+    endpoint: "http://localhost:3006"
+    webhook: "http://localhost:3021/agent/notice"
+
+# ============================================================================
+# 3. Message Format
+# ============================================================================
+
+message_format:
+  schema:
+    version: "1.0"
+    headers:
+      - name: "message_id"
+        type: "string"
+        required: true
+      - name: "timestamp"
+        type: "string"
+        required: true
+      - name: "source_role"
+        type: "string"
+        required: true
+      - name: "target_role"
+        type: "string"
+        required: true
+      - name: "priority"
+        type: "integer"
+        required: false
+      - name: "community_id"
+        type: "string"
+        required: false
+      - name: "event_id"
+        type: "string"
+        required: false
+      - name: "expires_at"
+        type: "string"
+        required: false
+
+    body:
+      - name: "type"
+        type: "string"
+        required: true
+      - name: "payload"
+        type: "object"
+        required: true
+      - name: "metadata"
+        type: "object"
+        required: false
+
+  # Message Types
+  types:
+    event_notification:
+      description: "Event Notification"
+      payload_fields:
+        - event_type
+        - event_id
+        - severity
+        - title
+        - description
+        - affected_residents
+        - status
+
+    task_assignment:
+      description: "Task Assignment"
+      payload_fields:
+        - task_id
+        - task_type
+        - description
+        - priority
+        - deadline
+        - assigned_to
+        - related_event_id
+
+    task_update:
+      description: "Task Update"
+      payload_fields:
+        - task_id
+        - status
+        - description
+        - updated_by
+        - timestamp
+
+    decision:
+      description: "Decision Notification"
+      payload_fields:
+        - decision_id
+        - title
+        - description
+        - options
+        - selected_option
+        - rationale
+        - affected_roles
+
+    data_sync:
+      description: "Data Sync"
+      payload_fields:
+        - table_name
+        - records
+        - operation: insert, update, delete
+        - community_id
+
+    alert:
+      description: "Alert Notification"
+      payload_fields:
+        - alert_type
+        - severity: 1=low, 2=medium, 3=high, 4=critical
+        - title
+        - description
+        - source
+        - timestamp
+        - recommended_action
+        - related_event_id
+
+    report:
+      description: "Report"
+      payload_fields:
+        - report_type
+        - title
+        - period
+        - data
+        - summary
+        - recommendations
+
+    confirmation:
+      description: "Confirmation"
+      payload_fields:
+        - message_id
+        - status: confirmed, rejected, acknowledged
+        - notes
+
+# ============================================================================
+# 4. Event Triggers
+# ============================================================================
+
+event_triggers:
+  security_incident:
+    - target_role: "ceo"
+      action: "notification"
+      priority: 100
+    - target_role: "security"
+      action: "handle"
+      priority: 85
+    - target_role: "property"
+      action: "investigate"
+      priority: 90
+
+  fire_alarm:
+    - target_role: "fire"
+      action: "handle"
+      priority: 80
+    - target_role: "ceo"
+      action: "notification"
+      priority: 100
+    - target_role: "security"
+      action: "monitor"
+      priority: 85
+    - target_role: "property"
+      action: "evacuate"
+      priority: 90
+
+  maintenance_needed:
+    - target_role: "property"
+      action: "handle"
+      priority: 90
+    - target_role: "ceo"
+      action: "notification"
+      priority: 100
+
+  energy_anomaly:
+    - target_role: "energy"
+      action: "handle"
+      priority: 75
+    - target_role: "ceo"
+      action: "notification"
+      priority: 100
+
+  new_resident:
+    - target_role: "ceo"
+      action: "register"
+      priority: 100
+    - target_role: "property"
+      action: "process"
+      priority: 90
+    - target_role: "notice"
+      action: "announce"
+      priority: 70
+
+  meeting_scheduled:
+    - target_role: "ceo"
+      action: "confirm"
+      priority: 100
+    - target_role: "notice"
+      action: "announce"
+      priority: 70
+    - target_role: "property"
+      action: "prepare"
+      priority: 90
+
+  fee_overdue:
+    - target_role: "property"
+      action: "notify"
+      priority: 90
+    - target_role: "ceo"
+      action: "escalate"
+      priority: 100
+
+  visitor_arrived:
+    - target_role: "security"
+      action: "check_in"
+      priority: 85
+    - target_role: "notice"
+      action: "announce"
+      priority: 70
+
+  equipment_failure:
+    - target_role: "property"
+      action: "handle"
+      priority: 90
+    - target_role: "fire"
+      action: "check"
+      priority: 80
+
+  emergency:
+    - target_role: "ceo"
+      action: "coordinate"
+      priority: 100
+    - target_role: "security"
+      action: "secure"
+      priority: 85
+    - target_role: "fire"
+      action: "emergency_response"
+      priority: 80
+    - target_role: "property"
+      action: "manage"
+      priority: 90
+    - target_role: "energy"
+      action: "power_management"
+      priority: 75
+    - target_role: "notice"
+      action: "broadcast"
+      priority: 70
+
+# ============================================================================
+# 5. Notification Routing
+# ============================================================================
+
+notification_routing:
+  types:
+    emergency:
+      priority: 4
+      channels:
+        - "line"
+        - "telegram"
+      recipients:
+        - "all_residents"
+        - "all_agents"
+        - "community_manager"
+      immediate: true
+
+    important:
+      priority: 3
+      channels:
+        - "line"
+      recipients:
+        - "all_residents"
+        - "all_agents"
+      immediate: false
+      timeout_hours: 24
+
+    routine:
+      priority: 2
+      channels:
+        - "line"
+      recipients:
+        - "all_residents"
+      immediate: false
+      timeout_hours: 48
+
+    informational:
+      priority: 1
+      channels:
+        - "line"
+      recipients:
+        - "all_residents"
+      immediate: false
+      timeout_hours: 72
+
+  rules:
+    severity_based:
+      - condition: "severity >= 4"
+        action: "immediate_broadcast"
+      - condition: "severity >= 3"
+        action: "urgent_notification"
+      - condition: "severity >= 2"
+        action: "standard_notification"
+      - condition: "severity < 2"
+        action: "batch_notification"
+
+    role_based:
+      - condition: "role == 'ceo'"
+        action: "notify_all"
+      - condition: "role == 'property'"
+        action: "notify_residents"
+      - condition: "role == 'security'"
+        action: "notify_residents"
+      - condition: "role == 'fire'"
+        action: "notify_residents"
+      - condition: "role == 'energy'"
+        action: "notify_residents"
+      - condition: "role == 'notice'"
+        action: "notify_residents"
+
+  line_templates:
+    emergency_alert:
+      name: "Emergency Alert"
+      content:
+        emoji: "🚨"
+        title: "Emergency Alert"
+        description: "{title} - {description}"
+        footer: "Community Management System"
+      priority: 4
+
+    important_notice:
+      name: "Important Notice"
+      content:
+        emoji: "📢"
+        title: "Important Notice"
+        description: "{title} - {description}"
+        footer: "Community Management System"
+      priority: 3
+
+    routine_update:
+      name: "Routine Update"
+      content:
+        emoji: "📋"
+        title: "Routine Update"
+        description: "{title} - {description}"
+        footer: "Community Management System"
+      priority: 2
+
+    informational:
+      name: "Informational"
+      content:
+        emoji: "ℹ️"
+        title: "Informational"
+        description: "{title} - {description}"
+        footer: "Community Management System"
+      priority: 1
+
+# ============================================================================
+# 6. Agent-to-Agent Flow
+# ============================================================================
+
+agent_to_agent_flow:
+  request_flow:
+    - step: 1
+      action: "source_agent_send_request"
+      description: "Source agent sends request"
+
+    - step: 2
+      action: "message_queue_enqueue"
+      description: "Message queued"
+      queue: "agent-to-agent"
+
+    - step: 3
+      action: "target_agent_receive"
+      description: "Target agent receives message"
+
+    - step: 4
+      action: "target_agent_process"
+      description: "Target agent processes task"
+
+    - step: 5
+      action: "target_agent_send_response"
+      description: "Target agent sends response"
+
+    - step: 6
+      action: "source_agent_receive_response"
+      description: "Source agent receives response"
+
+  error_handling:
+    timeout:
+      action: "retry"
+      max_retries: 3
+      retry_interval_seconds: 30
+
+    target_offline:
+      action: "queue_and_notify"
+      queue_timeout_hours: 24
+      notify_ceo: true
+
+    conflict:
+      action: "escalate_to_ceo"
+      notify_affected_roles: true
+
+# ============================================================================
+# 7. Database Integration
+# ============================================================================
+
+database_integration:
+  rules:
+    read_own_data: "Agent can read its own data"
+    write_own_data: "Agent can write data it manages"
+    cross_role_read: "Cross-role read requires authorization"
+    audit_logging: "All operations logged to audit_logs"
+
+  examples:
+    event_handling:
+      1: "security records event to events table"
+      2: "ceo queries events table"
+      3: "ceo assigns task to property"
+      4: "property updates events table"
+
+    notification:
+      1: "ceo creates notice in notices table"
+      2: "notice queries notices table"
+      3: "notice sends via LINE API"
+      4: "notice updates notices table"
+
+# ============================================================================
+# 8. Port Allocation
+# ============================================================================
+
+port_allocation:
+  agents:
+    ceo: "3001"
+    property: "3002"
+    security: "3003"
+    fire: "3004"
+    energy: "3005"
+    notice: "3006"
+
+  services:
+    line_bot: "3021"
+    redis: "6379"
+    postgres: "5432"
+
+  health_check: "3000"
+
+# ============================================================================
+# 9. Security
+# ============================================================================
+
+security:
+  - "All Agent communications require authentication (JWT Token)"
+  - "Sensitive data must be encrypted (AES-256)"
+  - "All operations must be logged (audit_logs)"
+  - "Access control must be strict (RBAC)"
+  - "Communications must use HTTPS/TLS"
+
+# ============================================================================
+# 10. Monitoring
+# ============================================================================
+
+monitoring:
+  - "Agent heartbeat check (every 30 seconds)"
+  - "Message queue depth monitoring"
+  - "Processing latency monitoring"
+  - "Error rate monitoring"
+  - "Resource usage monitoring"

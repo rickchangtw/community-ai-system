@@ -1,0 +1,31 @@
+# ============================================================================
+# Phase 6: Agent Dockerfiles
+# ============================================================================
+
+# ========================================================================
+# CEO Agent Dockerfile
+# ========================================================================
+# agents/ceo-agent/Dockerfile
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
+
+# Expose port
+EXPOSE 3001
+
+# Run agent
+CMD ["python", "agents/ceo_a2a_agent.py"]

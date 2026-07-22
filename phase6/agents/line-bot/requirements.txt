@@ -1,0 +1,19 @@
+# Line Bot Dependencies
+
+# Database
+psycopg2-binary==2.9.9
+
+# Redis
+redis==5.0.1
+
+# HTTP Client
+requests==2.31.0
+
+# Line Bot SDK
+line-bot-sdk==3.16.0
+
+# Logging
+logging==1.0.7
+
+# Utils
+python-dotenv==1.0.0

@@ -1,0 +1,19 @@
+# Meeting Transcription Dependencies
+
+# Database
+psycopg2-binary==2.9.9
+
+# Redis
+redis==5.0.1
+
+# ASR (Audio.cpp)
+audiocpp-server==0.1.0
+
+# HTTP Server
+uvicorn==0.24.0
+
+# Logging
+logging==1.0.7
+
+# Utils
+python-dotenv==1.0.0

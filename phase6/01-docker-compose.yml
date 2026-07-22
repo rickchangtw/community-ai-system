@@ -1,0 +1,325 @@
+version: '3.8'
+
+# ============================================================================
+# Phase 6: Deployment Architecture
+# Community Management System - Multi-Agent Orchestration
+# ============================================================================
+
+services:
+  # ========================================================================
+  # PostgreSQL Database
+  # ========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: community-postgres
+    environment:
+      POSTGRES_DB: community
+      POSTGRES_USER: hermes
+      POSTGRES_PASSWORD: hermes123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/01-community-schema.sql:/docker-entrypoint-initdb.d/01-community-schema.sql
+      - ./phase8/01-database-indexes.sql:/docker-entrypoint-initdb.d/02-database-indexes.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hermes -d community"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ========================================================================
+  # Redis (Event Bus & Caching)
+  # ========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: community-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ========================================================================
+  # CEO Agent (Main Orchestrator)
+  # ========================================================================
+  ceo-agent:
+    build:
+      context: ./agents/ceo-agent
+      dockerfile: Dockerfile
+    container_name: ceo-agent
+    ports:
+      - "3001:3001"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=community
+      - DB_USER=hermes
+      - DB_PASSWORD=hermes123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LINE_WEBHOOK_SECRET=${LINE_WEBHOOK_SECRET}
+      - LINE_CHANNEL_SECRET=${LINE_CHANNEL_SECRET}
+      - LINE_CHANNEL_ACCESS_TOKEN=${LINE_CHANNEL_ACCESS_TOKEN}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ========================================================================
+  # Property Agent
+  # ========================================================================
+  property-agent:
+    build:
+      context: ./agents/property-agent
+      dockerfile: Dockerfile
+    container_name: property-agent
+    ports:
+      - "3002:3002"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=community
+      - DB_USER=hermes
+      - DB_PASSWORD=hermes123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ========================================================================
+  # Security Agent
+  # ========================================================================
+  security-agent:
+    build:
+      context: ./agents/security-agent
+      dockerfile: Dockerfile
+    container_name: security-agent
+    ports:
+      - "3003:3003"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=community
+      - DB_USER=hermes
+      - DB_PASSWORD=hermes123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ========================================================================
+  # Fire Safety Agent
+  # ========================================================================
+  fire-agent:
+    build:
+      context: ./agents/fire-agent
+      dockerfile: Dockerfile
+    container_name: fire-agent
+    ports:
+      - "3004:3004"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=community
+      - DB_USER=hermes
+      - DB_PASSWORD=hermes123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ========================================================================
+  # Energy Agent
+  # ========================================================================
+  energy-agent:
+    build:
+      context: ./agents/energy-agent
+      dockerfile: Dockerfile
+    container_name: energy-agent
+    ports:
+      - "3005:3005"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=community
+      - DB_USER=hermes
+      - DB_PASSWORD=hermes123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ========================================================================
+  # Notice Center Agent
+  # ========================================================================
+  notice-agent:
+    build:
+      context: ./agents/notice-agent
+      dockerfile: Dockerfile
+    container_name: notice-agent
+    ports:
+      - "3006:3006"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=community
+      - DB_USER=hermes
+      - DB_PASSWORD=hermes123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LINE_WEBHOOK_SECRET=${LINE_WEBHOOK_SECRET}
+      - LINE_CHANNEL_SECRET=${LINE_CHANNEL_SECRET}
+      - LINE_CHANNEL_ACCESS_TOKEN=${LINE_CHANNEL_ACCESS_TOKEN}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ========================================================================
+  # Line Bot (Webhook Receiver)
+  # ========================================================================
+  line-bot:
+    build:
+      context: ./line-bot
+      dockerfile: Dockerfile
+    container_name: line-bot
+    ports:
+      - "3021:3021"
+    environment:
+      - LINE_WEBHOOK_SECRET=${LINE_WEBHOOK_SECRET}
+      - LINE_CHANNEL_SECRET=${LINE_CHANNEL_SECRET}
+      - LINE_CHANNEL_ACCESS_TOKEN=${LINE_CHANNEL_ACCESS_TOKEN}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=community
+      - POSTGRES_USER=hermes
+      - POSTGRES_PASSWORD=hermes123
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ========================================================================
+  # Realtime Meeting Transcription
+  # ========================================================================
+  meeting-transcription:
+    build:
+      context: ./scripts
+      dockerfile: Dockerfile
+    container_name: meeting-transcription
+    ports:
+      - "3011:8000"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=community
+      - POSTGRES_USER=hermes
+      - POSTGRES_PASSWORD=hermes123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ========================================================================
+  # Monitoring Agent
+  # ========================================================================
+  monitoring-agent:
+    build:
+      context: ./agents/monitoring-agent
+      dockerfile: Dockerfile
+    container_name: monitoring-agent
+    ports:
+      - "3010:3000"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=community
+      - POSTGRES_USER=hermes
+      - POSTGRES_PASSWORD=hermes123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ========================================================================
+  # Health Check Endpoint
+  # ========================================================================
+  health-check:
+    image: nginx:alpine
+    container_name: health-check
+    ports:
+      - "3000:80"
+    volumes:
+      - ./health-check/default.conf:/etc/nginx/nginx.conf
+    depends_on:
+      ceo-agent:
+        condition: service_healthy
+      property-agent:
+        condition: service_healthy
+      security-agent:
+        condition: service_healthy
+      fire-agent:
+        condition: service_healthy
+      energy-agent:
+        condition: service_healthy
+      notice-agent:
+        condition: service_healthy
+      line-bot:
+        condition: service_healthy
+      meeting-transcription:
+        condition: service_healthy
+      monitoring-agent:
+        condition: service_healthy
+    restart: unless-stopped
+
+# ========================================================================
+# Volume Definitions
+# ========================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ========================================================================
+# Environment Variables (.env file)
+# ========================================================================
+# Copy .env.example to .env and fill in values:
+# LINE_WEBHOOK_SECRET=your_webhook_secret
+# LINE_CHANNEL_SECRET=your_channel_secret
+# LINE_CHANNEL_ACCESS_TOKEN=your_channel_access_token

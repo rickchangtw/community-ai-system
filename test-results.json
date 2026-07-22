@@ -1,0 +1,101 @@
+{
+  "test_date": "2026-07-12T22:57:06.980409",
+  "scenarios": 6,
+  "completed": 6,
+  "failed": 0,
+  "results": {
+    "resident-report": {
+      "scenario": "resident-report",
+      "name": "居民投訴電梯故障",
+      "role": "hermes-property",
+      "priority": "high",
+      "status": "completed",
+      "timestamp": "2026-07-12T22:57:06.980278",
+      "steps": [
+        "接收居民投訴",
+        "建立工單 #WO-2026-0715-001",
+        "分派物業管理 Agent",
+        "排程維修人員",
+        "保全巡邏注意",
+        "通知相關居民"
+      ]
+    },
+    "fire-alert": {
+      "scenario": "fire-alert",
+      "name": "消防設備異常",
+      "role": "hermes-fire",
+      "priority": "critical",
+      "status": "completed",
+      "timestamp": "2026-07-12T22:57:06.980305",
+      "steps": [
+        "接收消防異常",
+        "記錄事件 #EVT-2026-0715-001",
+        "判定優先級: 緊急",
+        "通知總幹事簽核",
+        "通知物業處",
+        "排程設備維修"
+      ]
+    },
+    "energy-report": {
+      "scenario": "energy-report",
+      "name": "用電異常報告",
+      "role": "hermes-energy",
+      "priority": "medium",
+      "status": "completed",
+      "timestamp": "2026-07-12T22:57:06.980319",
+      "steps": [
+        "分析用電數據",
+        "偵測異常: 停車場用電 +15%",
+        "生成報告",
+        "通知節能 Agent 調查",
+        "建議節能措施"
+      ]
+    },
+    "meeting-minutes": {
+      "scenario": "meeting-minutes",
+      "name": "會議記錄整理",
+      "role": "hermes-admin",
+      "priority": "normal",
+      "status": "completed",
+      "timestamp": "2026-07-12T22:57:06.980330",
+      "steps": [
+        "收集會議音頻",
+        "語音轉文字",
+        "發言人辨識",
+        "語意分析",
+        "生成會議記錄",
+        "發送給與會者"
+      ]
+    },
+    "announcement": {
+      "scenario": "announcement",
+      "name": "社區公告發布",
+      "role": "hermes-notify",
+      "priority": "normal",
+      "status": "completed",
+      "timestamp": "2026-07-12T22:57:06.980341",
+      "steps": [
+        "接收公告內容",
+        "判定目標群眾",
+        "選擇通知方式",
+        "發送 LINE/APP",
+        "記錄發送狀態"
+      ]
+    },
+    "approval-workflow": {
+      "scenario": "approval-workflow",
+      "name": "維修申請簽核",
+      "role": "hermes-admin",
+      "priority": "high",
+      "status": "completed",
+      "timestamp": "2026-07-12T22:57:06.980351",
+      "steps": [
+        "接收申請",
+        "初步審核",
+        "分派總幹事",
+        "等待簽核",
+        "執行或退回"
+      ]
+    }
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "meeting_id": "MEET-2026-07-15",
+  "title": "社區會議",
+  "date": "2026-07-15",
+  "time_start": "09:00",
+  "time_end": "10:00",
+  "location": "社區活动中心",
+  "host": "張三",
+  "speakers": [
+    {
+      "id": "spk-1",
+      "name": "張三",
+      "unit": "101",
+      "role": "總幹事",
+      "embedding": "",
+      "confidence": 0.0,
+      "model": "whisper"
+    },
+    {
+      "id": "spk-2",
+      "name": "李四",
+      "unit": "205",
+      "role": "委員",
+      "embedding": "",
+      "confidence": 0.0,
+      "model": "whisper"
+    },
+    {
+      "id": "spk-3",
+      "name": "王五",
+      "unit": "308",
+      "role": "委員",
+      "embedding": "",
+      "confidence": 0.0,
+      "model": "whisper"
+    }
+  ],
+  "segments": [
+    {
+      "speaker_id": "spk-1",
+      "speaker_name": "張三",
+      "start": 0.0,
+      "end": 10.0,
+      "text": "歡迎大家參加今天的社區會議",
+      "confidence": 0.0
+    },
+    {
+      "speaker_id": "spk-2",
+      "speaker_name": "李四",
+      "start": 10.0,
+      "end": 20.0,
+      "text": "首先討論停車場收費問題",
+      "confidence": 0.0
+    }
+  ],
+  "agenda": [
+    {
+      "title": "停車場收費",
+      "speaker": "李四",
+      "content": "討論新的收費標準",
+      "resolution": "通過"
+    },
+    {
+      "title": "消防設備更新",
+      "speaker": "王五",
+      "content": "討論設備更新預算",
+      "resolution": "待簽核"
+    }
+  ],
+  "action_items": [
+    {
+      "item": "完成停車場收費方案",
+      "owner": "李四",
+      "deadline": "2026-07-22",
+      "status": "pending"
+    },
+    {
+      "item": "消防設備更新申請",
+      "owner": "王五",
+      "deadline": "2026-07-29",
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-07-16T20:33:54.582309"
+}
