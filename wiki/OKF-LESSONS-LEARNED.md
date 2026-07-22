@@ -15,9 +15,9 @@ tags: [lessons, pitfall, troubleshooting, okf]
 
 | 項目 | 說明 |
 |------|------|
-| **問題** | 舊 Token (REDACTED_TOKEN) 只有 `public_repo` 權限，無法建立新倉庫 |
+| **問題** | 舊 Token 只有 `public_repo` 權限，無法建立新倉庫 |
 | **症狀** | `curl -s -X POST /user/repos` 返回 403 "Resource not accessible by personal access token" |
-| **解決** | 使用舊 Token `REDACTED_TOKEN`（有 `repo` 權限） |
+| **解決** | 使用有 `repo` 權限的 Token |
 | **教訓** | PAT 權限必須包含 `repo` 才能建立倉庫 |
 
 ### 2. gh CLI 版本過舊
@@ -126,4 +126,3 @@ tags: [lessons, pitfall, troubleshooting, okf]
 3. **環境隔離**: 使用 Docker Compose 隔離環境
 4. **測試自動化**: 添加單元測試和集成測試
 5. **文檔維護**: 持續更新踩坑記錄
-
